@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生学习系统</title>
+    <!--<script src="http://code.jquery.com/jquery-latest.js"></script>-->
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script>
+
+        function loginSystem() {
+            var key = document.getElementById("qtalk").value;
+            var password = document.getElementById("password").value;
+            $.ajax({
+                type: "post",
+                url: "/CheckUserLoginInfo",
+                data: {qtalk:key, password:password},
+                dataType: 'json',
+                success: function(result) {
+                    var qtalk = result.qtalk;
+                    $.cookie("qtalk", qtalk);
+                    $.cookie("permissions", result.permissions);
+                    $.cookie("periodId", result.periodId);
+
+                    //设置cookie  $.cookie("qtalk", result.qtalk);
+                    //获取cookie  alert($.cookie("qtalk"));
+                    if(result.permissions == 1) {
+                        location.href ="/studentindex";
+                    } else if (result.permissions==2) {
+                        alert("导师权限");
+                        location.href ="/tutorindex";
+                    }
+
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <from>
+            <table>
+                <tr>
+                    <td>学生Qtalk：</td>
+                    <td><input type="text" name="qtalk" id="qtalk"/></td>
+                </tr>
+                <tr>
+                    <td>密码：</td>
+                    <td><input type="password" name="password" id="password"/></td>
+                </tr>
+                <tr>
+                    <td><input type="button" value="学生登录" onclick="loginSystem()"/></td>
+                    <td><a href="/RegisterStudentInfoPage">注册</a></td>
+                </tr>
+            </table>
+        </from>
+
+    </div>
+</body>
+</html>

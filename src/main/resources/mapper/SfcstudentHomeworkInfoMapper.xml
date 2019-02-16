@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="zijie.zeng.homework.study.dao.SfcStudentHomeworkInfoDao">
+
+    <!--插入操作-->
+    <insert id="insertHomeworkByQtalkAndPeriodAndSubjectTime" parameterType="SfcStudentHomeworkInfoModel">
+        INSERT INTO student_homework_info
+        (student_qtalk,period_id,subject_time,homework_url)
+        VALUES
+        (#{studentQtalk},#{periodId},#{subjectTime},#{homeworkUrl})
+    </insert>
+
+    <!--修改操作-->
+    <!--根据你期次和qtalk修改一个作业-->
+    <update id="updateHomeworkByQtalkAndPeriodAndSubjectTime" parameterType="SfcStudentHomeworkInfoModel">
+        update student_homework_info
+        <set>
+            <if test="homeworkUrl != null">
+                homework_url = #{homeworkUrl},
+            </if>
+        </set>
+        where student_qtalk = #{studentQtalk} and period_id = #{periodId} and subject_time = #{subjectTime}
+    </update>
+
+    <!--查询操作-->
+    <!--查询所有期次所有作业-->
+    <select id="queryHomeworkInfoAll" resultType="zijie.zeng.homework.study.model.SfcStudentHomeworkInfoModel">
+        SELECT
+            homework_info_id as id,
+            student_qtalk as studentQtalk,
+            period_id as periodId,
+            subject_time as subjectTime,
+            homework_url as homeworkUrl
+        FROM
+            student_homework_info
+    </select>
+    <!--查询所有期次所有作业-->
+    <select id="queryHWInfoByPeriodId" resultType="zijie.zeng.homework.study.model.SfcStudentHomeworkInfoModel">
+        SELECT
+            homework_info_id as id,
+            student_qtalk as studentQtalk,
+            period_id as periodId,
+            subject_time as subjectTime,
+            homework_url as homeworkUrl
+        FROM
+            student_homework_info
+        where period_id = #{periodId}
+    </select>
+    <!--查询某一期次所有作业-->
+    <select id="queryHWInfoByPeriodIdAndQtalk" resultType="zijie.zeng.homework.study.model.SfcStudentHomeworkInfoModel">
+        SELECT
+            homework_info_id as id,
+            student_qtalk as studentQtalk,
+            period_id as periodId,
+            subject_time as subjectTime,
+            homework_url as homeworkUrl
+        FROM
+            student_homework_info
+        where period_id = #{periodId} and student_qtalk = #{qtalk}
+    </select>
+    <select id="queryHWInfoByPeriodIdAndQtalkAndOrder" resultType="zijie.zeng.homework.study.model.SfcStudentHomeworkInfoModel">
+        SELECT
+            homework_info_id as id,
+            student_qtalk as studentQtalk,
+            period_id as periodId,
+            subject_time as subjectTime,
+            homework_url as homeworkUrl
+        FROM
+            student_homework_info
+        where period_id = #{periodId} and student_qtalk = #{qtalk} and subject_time = #{subjectTime}
+    </select>
+</mapper>

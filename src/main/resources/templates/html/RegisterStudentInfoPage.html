@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生学习系统</title>
+
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script>
+        function registerUser() {
+            var studentqtalk = document.getElementById("studentqtalk").value;
+            var studentname = document.getElementById("studentname").value;
+            var password = document.getElementById("password").value;
+            var studentsex = document.getElementById("studentsex").value;
+            var studentcontent = document.getElementById("studentcontent").value;
+            var studentphone = document.getElementById("studentphone").value;
+            var studentclass = document.getElementById("studentclass").value;
+            alert(
+                "qtalk:"+studentqtalk+"name:"+studentname+"pasword:"+
+                password+"sex:"+studentsex+"content"+studentcontent+"phone:"+
+                studentphone+"class:"+studentclass
+            );
+            $.ajax({
+                type: "post",
+                url: "/insertUserForRegesiter",
+                data: {
+                    studentQtalk:studentqtalk, studentName:studentname, studentPassword:password,
+                    studentSex:studentsex, studentContent:studentcontent, studentPhone:studentphone,
+                    studentClass:studentclass
+                },
+                dataType: 'json',
+                success: function(data) {
+                    alert("注册成功");
+                    //跳转登录页面
+                    location.href ="/login";
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div>
+    <from>
+        <table>
+            <tr>
+                <td>学生Qtalk：</td>
+                <td><input type="text" name="studentqtalk" id="studentqtalk"/></td>
+            </tr>
+            <tr>
+                <td>姓名：</td>
+                <td><input type="text" name="studentname" id="studentname"/></td>
+            </tr>
+            <tr>
+                <td>密码：</td>
+                <td><input type="password" name="password" id="password"/></td>
+            </tr>
+            <tr>
+                <td>确定密码：</td>
+                <td><input type="password" name="surepassword" id="surepassword"/></td>
+            </tr>
+            <tr>
+                <td>性别：</td>
+                <td>
+                    <select name="studentsex" id="studentsex">
+                        <option value="女">女</option>
+                        <option value="男">男</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>个性签名：</td>
+                <td><input type="text" name="studentcontent" id="studentcontent"/></td>
+            </tr>
+            <tr>
+                <td>手机号：</td>
+                <td><input type="text" name="studentphone" id="studentphone"/></td>
+            </tr>
+            <tr>
+                <td>班级：</td>
+                <td><input type="text" name="studentclass" id="studentclass"/></td>
+            </tr>
+            <tr>
+                <td><input type="button" value="确定" onclick="registerUser()"/></td>
+                <td><a href="/login">登录</a></td>
+            </tr>
+        </table>
+    </from>
+</div>
+</body>
+</html>

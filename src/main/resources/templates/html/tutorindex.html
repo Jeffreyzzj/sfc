@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生学习系统</title>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script>
+        $(document).ready(function() {
+            //session锁
+            if($.cookie("permissions")==2) {
+                document.getElementById('plateManager').style.display="none";
+            } else if($.cookie("permissions")==3) {
+                document.getElementById('plateManager').style.display="block";
+            } else if($.cookie("permissions")!=4) {
+                alert("您的身份认证存在问题，请重新登录");
+                location.href ="/login";
+            }
+
+            //如果为管理员，可见学生页面中的管理员板块
+            if($.cookie("permissions")==3 || $.cookie("permissions")==4) {
+                document.getElementById('plateManager').style.display="block";
+            }
+
+        });
+
+        /*显示div,用于权限操作*/
+        function showDiv(n) {
+            document.getElementById(n).style.display="block";
+        }
+        /*隐藏div*/
+        function hideDiv(n) {
+            var managerArray = new Array();
+            managerArray[0] = "studentManager";
+            managerArray[1] = "teacherManager";
+            managerArray[2] = "courseManager";
+            managerArray[3] = "newsManager";
+            managerArray[4] = "managerPermissions";
+            for(var i=0; i<managerArray.length; i++) {
+                document.getElementById(managerArray[i]).style.display="none";
+            }
+        }
+
+        //用于对比使用,0为单纯刷新，1为禁用，2为启用,相当于一个过滤器，
+        var flagStudentCompare = 1;
+        function setFlagStudentCompare(value) {
+            flagStudentCompare = value;
+        }
+
+        //过滤器
+        function deleteTableStudentManager(value) {
+
+            document.getElementById('studentDisplay').style.display="block";
+
+            var managerArray = new Array();
+            managerArray[0] = "tableStudentAllDisplay";
+            managerArray[1] = "tableStudentLastPeriodDisplay";
+            managerArray[2] = "tableTeacherAllDisplay";
+            managerArray[3] = "tableStudentLastPeriodDisplayTeacher";
+            managerArray[4] = "tableCourseAllDisplay";
+            managerArray[5] = "tableStudentLastPeriodDisplayCourse";
+            managerArray[6] = "tableHomeWorkAllDisplay";
+            managerArray[7] = "tableStudentLastPeriodDisplayHomework";
+            //表头标签
+            managerArray[8] = "titleTalbe1";
+            managerArray[9] = "titleTalbe2";
+            managerArray[10] = "titleTalbe3";
+            managerArray[11] = "titleTalbe4";
+            managerArray[12] = "titleTalbe5";
+            managerArray[13] = "titleTalbe6";
+            managerArray[14] = "titleTalbe7";
+            managerArray[15] = "titleTalbe8";
+
+            if(flagStudentCompare==1) {
+
+                //$('#tableStudentAllDisplay').remove();
+                for(var i=0; i<managerArray.length; i++) {
+                    $('#'+managerArray[i]).remove();
+                }
+            }
+
+            if(value==0) {
+                for(var i=0; i<managerArray.length; i++) {
+                    $('#'+managerArray[i]).remove();
+                }
+            }
+
+            document.getElementById('changeMyselfInfo').style.display="none";
+            document.getElementById('uploadHomeworkDiv').style.display="none";
+        }
+
+        //显示布置作业div
+        function displayHomeworkSure() {
+            //删除学生模块中其他的table
+            deleteTableStudentManager(0);
+
+            document.getElementById('uploadHomeworkDiv').style.display="block";
+            $('#tutorqtalkHW').val($.cookie("qtalk"));
+        }
+
+
+        /*查询所有学生*/
+        function queryStudentAll() {
+            console.log("queryStudentAll方法开始");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherSearchAllStudent",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //获得table的id
+                    //alert($("#studentAllDisplay").attr("name"));
+                    document.getElementById('studentDisplay').style.display="block";
+                    //删除学生模块中其他的table
+                    deleteTableStudentManager();
+                    //对比时使用
+                    $('#tableStudentAllDisplay').remove();
+                    $('#titleTalbe1').remove();
+
+                    var trtitle = $(
+                        "<table id='tableStudentAllDisplay'>" +
+                        "<span id='titleTalbe1' class='titleForTable'>所有学生信息表</span>" +
+                        "<tr>" +
+                        "<td>学生姓名</td><td>qtalk</td>" +
+                        "<td>性别</td><td>个性签名</td>" +
+                        "<td>手机号</td><td>培训期次</td>" +
+                        "<td>班级</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].studentName +
+                            "</td><td>" + result[i].qtalk +
+                            "</td><td>" + result[i].studentSex +
+                            "</td><td>" + result[i].studentContent +
+                            "</td><td>" + result[i].studentPhone +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].studentClass +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableStudentAllDisplay").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        //查询最新期次的学生
+        function queryStudentLastPeriod() {
+            console.log("queryStudentLastPeriod方法开始");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherSearchLastPeriod",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    document.getElementById('studentDisplay').style.display="block";
+                    //删除学生模块中其他的table
+                    deleteTableStudentManager();
+                    //禁用对比时使用
+                    $('#tableStudentLastPeriodDisplay').remove();
+                    $('#titleTalbe2').remove();
+                    var trtitle = $(
+                        "<table id='tableStudentLastPeriodDisplay'>" +
+                        "<span id='titleTalbe2' class='titleForTable'>当前期次学生信息表</span>" +
+                        "<tr>" +
+                        "<td>学生姓名</td><td>qtalk</td>" +
+                        "<td>性别</td><td>个性签名</td>" +
+                        "<td>手机号</td><td>培训期次</td>" +
+                        "<td>班级</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].studentName +
+                            "</td><td>" + result[i].qtalk +
+                            "</td><td>" + result[i].studentSex +
+                            "</td><td>" + result[i].studentContent +
+                            "</td><td>" + result[i].studentPhone +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].studentClass +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableStudentLastPeriodDisplay").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*查询所有老师*/
+        function queryTeacherAll() {
+            console.log("queryTeacherAll");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherSearchAllTeacher",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableTeacherAllDisplay').remove();
+                    $('#titleTalbe3').remove();
+                    var trtitle = $(
+                        "<table id='tableTeacherAllDisplay'>" +
+                        "<span id='titleTalbe3' class='titleForTable'>所有老师信息表</span>" +
+                        "<tr>" +
+                        "<td>学生姓名</td><td>qtalk</td>" +
+                        "<td>性别</td><td>个性签名</td>" +
+                        "<td>手机号</td><td>培训期次</td>" +
+                        "<td>科目</td><td>作业</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].tutorName +
+                            "</td><td>" + result[i].qtalk +
+                            "</td><td>" + result[i].tutorSex +
+                            "</td><td>" + result[i].tutorContent +
+                            "</td><td>" + result[i].tutorPhone +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].tutorSubject +
+                            "</td><td>" + result[i].tutorHomework +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableTeacherAllDisplay").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*查询当前期次所有老师*/
+        function queryStudentLastPeriodTeacher() {
+            console.log("queryStudentLastPeriodTeacher");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherLastPeriodTeacher",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableStudentLastPeriodDisplayTeacher').remove();
+                    $('#titleTalbe4').remove();
+
+                    var trtitle = $(
+                        "<table id='tableStudentLastPeriodDisplayTeacher'>" +
+                        "<span id='titleTalbe4' class='titleForTable'>当前期次老师信息表</span>" +
+                        "<tr>" +
+                        "<td>学生姓名</td><td>qtalk</td>" +
+                        "<td>性别</td><td>个性签名</td>" +
+                        "<td>手机号</td><td>培训期次</td>" +
+                        "<td>科目</td><td>作业</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].tutorName +
+                            "</td><td>" + result[i].qtalk +
+                            "</td><td>" + result[i].tutorSex +
+                            "</td><td>" + result[i].tutorContent +
+                            "</td><td>" + result[i].tutorPhone +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].tutorSubject +
+                            "</td><td>" + result[i].tutorHomework +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableStudentLastPeriodDisplayTeacher").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        //显示个人信息DIV
+        function displayMyselfInfoDiv() {
+            //删除学生模块中其他的table
+            deleteTableStudentManager(0);
+
+            document.getElementById('changeMyselfInfo').style.display="block";
+            $('#tutorqtalk').text($.cookie("qtalk"));
+        }
+
+        //修改个人信息
+        function changeMyselfInfo() {
+            var qtalk = $.cookie("qtalk");
+            var name = document.getElementById("tutorname").value;
+            var sex = document.getElementById("tutorsex").value;
+            var content = document.getElementById("tutorcontent").value;
+            var phone = document.getElementById("tutorphone").value;
+            $.ajax({
+                type: "post",
+                url: "/changeTeacherMyselfInfo",
+                data: {
+                    qtalk:qtalk, tutorName:name,tutorSex:sex, permissions: $.cookie("permissions"),
+                    tutorContent:content, tutorPhone:phone,periodId: $.cookie("periodId")
+                },
+                dataType: 'json',
+                success: function(data) {
+                    alert("修改成功");
+                    //跳转登录页面
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*查询所有课程*/
+        function queryCourseAll() {
+            console.log("queryCourseAll");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherCourseAll",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableCourseAllDisplay').remove();
+                    $('#titleTalbe5').remove();
+
+                    var trtitle = $(
+                        "<table id='tableCourseAllDisplay'>" +
+                        "<span id='titleTalbe5' class='titleForTable'>所有期次课程表</span>" +
+                        "<tr>" +
+                        "<td>科目名称</td><td>科目顺序</td>" +
+                        "<td>科目期次</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].subjectName +
+                            "</td><td>" + result[i].subjectOrder +
+                            "</td><td>" + result[i].periodId +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableCourseAllDisplay").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*查询当前期次课程*/
+        function queryStudentLastPeriodCourse() {
+            console.log("queryStudentLastPeriodCourse");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherLastPeriodCourse",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableStudentLastPeriodDisplayCourse').remove();
+                    $('#titleTalbe6').remove();
+
+                    var trtitle = $(
+                        "<table id='tableStudentLastPeriodDisplayCourse'>" +
+                        "<span id='titleTalbe6' class='titleForTable'>当前期次课程表</span>" +
+                        "<tr>" +
+                        "<td>科目名称</td><td>科目顺序</td>" +
+                        "<td>科目期次</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].subjectName +
+                            "</td><td>" + result[i].subjectOrder +
+                            "</td><td>" + result[i].periodId +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableStudentLastPeriodDisplayCourse").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+        /*查询所有期次作业*/
+        function queryHomeWorkAll() {
+            console.log("queryHomeWorkAll");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherHomeWorkAll",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableHomeWorkAllDisplay').remove();
+                    $('#titleTalbe7').remove();
+
+                    var trtitle = $(
+                        "<table id='tableHomeWorkAllDisplay'>" +
+                        "<span id='titleTalbe7' class='titleForTable'>所有期次作业表</span>" +
+                        "<tr>" +
+                        "<td>学生说Qtalk</td><td>期次</td>" +
+                        "<td>课程顺序</td><td>作业链接</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].studentQtalk +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].subjectTime +
+                            "</td><td>" + result[i].homeworkUrl +
+                            "</td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableHomeWorkAllDisplay").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*下载文件*/
+        /*function downloadFile(obj) {
+            var x = $(obj).parent().parent().find("td");
+            var url = x.eq(3).text();
+            var qtalk = $.cookie("qtalk");
+            var periodid = $.cookie("periodId");
+            var permissions = $.cookie("permissions");
+            $.ajax({
+                url:"/downloadFileTeacher",
+                type:"post",
+                data:{qtalk:qtalk, periodId: periodid, permissions: permissions, homeworkUrl: url},
+                dataType: 'json',
+                /!*processData:false,
+                contentType:false,*!/
+                success:function(data){
+                    alert("下载作业成功！");
+                    console.log("over..");
+                },
+                error:function(e){
+                    alert("上传失败，请重试！！！");
+                }
+            });
+
+        }*/
+
+        /*下载文件,也是现在使用的一个*/
+        function downloadFile(obj) {
+            var a = document.createElement('a');
+            var x = $(obj).parent().parent().find("td");
+            var url = x.eq(3).text();
+
+            var qtalk = $.cookie("qtalk");
+            var periodid = $.cookie("periodId");
+            var permissions = $.cookie("permissions");
+
+            var url = "downloadFileTeacher/?homeworkUrl="+url+"&qtalk="+qtalk+"&periodId="+periodid+"&permissions="+permissions;
+            alert(url);
+            var filename = 'data.txt';
+            console.log("start download file for student homework");
+            a.href=url;
+            a.download = filename;
+            a.click()
+        }
+
+        /*查询最新期次期次作业*/
+        function queryStudentLastPeriodHomeWork() {
+            console.log("queryStudentLastPeriodHomeWork");
+            $.ajax({
+                type: "post",
+                url: "/queryTeacherLastPeriodHomeWork",
+                data: {qtalk:$.cookie("qtalk"), periodId:$.cookie("periodId"), permissions: $.cookie("permissions")},
+                dataType: 'json',
+                success: function(result) {
+                    //删除老师板块模块中其他的table
+                    deleteTableStudentManager();
+                    document.getElementById('studentDisplay').style.display="block";
+                    //对比时使用
+                    $('#tableStudentLastPeriodDisplayHomework').remove();
+                    $('#titleTalbe8').remove();
+
+                    var trtitle = $(
+                        "<table id='tableStudentLastPeriodDisplayHomework'>" +
+                        "<span id='titleTalbe8' class='titleForTable'>当前期次作业表</span>" +
+                        "<tr>" +
+                        "<td>学生Qtalk</td><td>期次</td>" +
+                        "<td>课程顺序</td><td>作业路径</td><td>点击下载</td></table>"
+                    );
+                    $("#studentDisplay").append(trtitle);
+
+                    $.each(result, function (i) {//遍历
+                        var tr = $(
+                            "<tr><td>" + result[i].studentQtalk +
+                            "</td><td>" + result[i].periodId +
+                            "</td><td>" + result[i].subjectTime +
+                            "</td><td>" + result[i].homeworkUrl +
+                            "</td><td><button class='uploadFileStudenthomeWork' onclick='downloadFile(this)'>下载作业</button></td></tr>"
+                        );
+                        //动态生成列表
+
+                        $("#tableStudentLastPeriodDisplayHomework").append(tr);
+
+                    });
+                },
+                error: function(result) {
+                    alert(result.responseJSON.message);
+                }
+            });
+        }
+
+        /*老师布置作业*/
+        function teacherSureHomework() {
+            var form = new FormData(document.getElementById("sureHomeWork"));
+            form.append("periodId",$.cookie("periodId"));
+            form.append("permissions",$.cookie("permissions"));
+            $.ajax({
+                url:"/teacherSureHomework",
+                type:"post",
+                data:form,
+                processData:false,
+                contentType:false,
+                success:function(data){
+                    alert("上传作业成功！");
+                    console.log("over..");
+                },
+                error:function(e){
+                    alert("上传失败，请重试！！！");
+                    window.clearInterval(timer);
+                }
+            });
+            get();//此处为上传文件的进度条
+        }
+
+    </script>
+</head>
+<style>
+    body{
+        background: white;
+        margin:0px;
+    }
+
+    table {
+        /*width: 900px;*/
+        width: 80%;
+        padding: 0 ;
+        margin: 20px auto;
+        border-collapse: collapse;
+        /*显示路径时会超长*/
+        table-layout:fixed;/* 只有定义了表格的布局算法为fixed，下面td的定义才能起作用。 */
+    }
+    td,th {
+        border: 1px solid #ddd;
+        padding: 6px 6px 6px 12px;
+        color: #4f6b72;
+        text-align: center;
+        width: 100%;
+        /*显示路径时会超长*/
+        overflow:hidden;/* 内容超出宽度时隐藏超出部分的内容 */
+        text-overflow:ellipsis;/* 当对象内文本溢出时显示省略标记(...) ；需与overflow:hidden;一起使用*/
+    }
+    th {
+        background: #d3d3d3;
+    }
+    a:link {
+        text-decoration: none;
+    }
+    a:hover {
+        color: #FFB90F;
+    }
+
+    .divOperation1 {
+        background-color: aqua;
+        position: absolute;
+        /*left: 30px;*/
+        width: 100%;
+        height: 9%;
+        top: 0%;
+        text-align: center;
+    }
+    .divOperation1Son {
+        position: relative;
+        float: left;
+        width: 10%;
+        height: 100%;
+        /*border:1px solid red;*/
+        padding-top: 1%;
+        margin-right: 2%;
+        /*字体处理*/
+        text-align: center;
+        font-size: 198%;
+    }
+    .managerUser {
+        /*background-color: red;*/
+        /*border:1px solid red;*/
+        position: absolute;
+        left: 10%;
+        top: 9%;
+        z-index:100;
+        display: none;
+        width: 70%;
+        height: 40%;
+        background: -moz-linear-gradient(left, #9C9C9C, #EDEDED);
+    }
+    .permissionsChoose {
+        position: relative;
+    }
+    .divOperation2 {
+        /*border:1px solid red;*/
+        position: absolute;
+        /*left: 30px;*/
+        width: 70%;
+        height: auto;
+        top: 14%;
+        left: 10%;
+        display: block;
+        text-align: center;
+    }
+    /*对比按钮的设置*/
+    .studentDisplayButton {
+        background-color: #7CCD7C;
+        border: 2px solid #CDC9A5;
+        color: white;
+        padding: 12px 27px;
+        margin-right: 2px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 20px;
+        border-radius: 36px;
+    }
+    /*个人信息div*/
+    .myselfInfo {
+        /*border:1px solid red;*/
+        position: absolute;
+        width: 100%;
+        height: auto;
+        top: 190%;
+        /*display: none;*/
+        text-align: center;
+        display: none;
+    }
+    /*查询表后的标题*/
+    .titleForTable {
+        color: #EE7942;
+        font-style:italic;
+        font-palette: light;
+        font-size: 1.5em;
+    }
+
+    /*布置作业div*/
+    .uploadFileHomework {
+        /*border:1px solid red;*/
+        position: absolute;
+        width: 100%;
+        height: auto;
+        top: 190%;
+        /*display: none;*/
+        text-align: center;
+        display: none;
+    }
+
+    /*table内按钮样式*/
+    .uploadFileStudenthomeWork {
+        background-color: #EEEE00;
+        border: 1px solid #CDC9A5;
+        color: black;
+        padding: 7px 20px;
+        margin-right: 2px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        border-radius: 108px;
+    }
+
+    /*表单内确定按钮*/
+    .buttonforsure {
+        background-color: #FF7F00;
+        border: 2px solid #BCEE68;
+        padding: 4px 15px;
+        margin-right: 2px;
+        font-size: 16px;
+        border-radius: 36px;
+    }
+</style>
+<body>
+    <div class="divOperation1">
+        <div class="divOperation1Son">
+
+        </div>
+        <div class="divOperation1Son" onmouseover="showDiv('studentManager')" onmouseout="hideDiv('studentManager')">
+            学生管理
+        </div>
+        <div class="divOperation1Son" onmouseover="showDiv('teacherManager')" onmouseout="hideDiv('teacherManager')">
+            教师管理
+        </div>
+        <div class="divOperation1Son" onmouseover="showDiv('courseManager')" onmouseout="hideDiv('courseManager')">
+            课程&作业
+        </div>
+        <div class="divOperation1Son" onmouseover="showDiv('newsManager')" onmouseout="hideDiv('newsManager')">
+            新闻时政
+        </div>
+        <div style="display:none;" class="divOperation1Son" id="plateManager" onmouseover="showDiv('managerPermissions')" onmouseout="hideDiv('managerPermissions')">
+            管理员
+        </div>
+    </div>
+
+    <!--学生管理-->
+    <div class="managerUser" id="studentManager" onmouseover="showDiv('studentManager')" onmouseout="hideDiv('studentManager')" onclick="hideDiv('studentManager')">
+        <div class="permissionsChoose" style="left: 5%;">
+            <a href="#" onclick="queryStudentAll()">查看所有学生</a><br/>
+            <a href="#" onclick="queryStudentLastPeriod()">查看最新培训期次所有学生</a><br/>
+        </div>
+    </div>
+    <!--教师管理-->
+    <div class="managerUser" id="teacherManager" onmouseover="showDiv('teacherManager')" onmouseout="hideDiv('teacherManager')" onclick="hideDiv('teacherManager')">
+        <div class="permissionsChoose" style="left: 22%;">
+            <a href="#" onclick="queryTeacherAll()">查看所有教师</a><br/>
+            <a href="#" onclick="queryStudentLastPeriodTeacher()">查看当前期次所有教师</a><br/>
+            <a href="#" onclick="displayMyselfInfoDiv()">修改老师个人信息</a><br/>
+            <a href="#" onclick="displayHomeworkSure()">布置作业</a><br/>
+        </div>
+    </div>
+    <!--课程&作业-->
+    <div class="managerUser" id="courseManager" onmouseover="showDiv('courseManager')" onmouseout="hideDiv('courseManager')" onclick="hideDiv('courseManager')">
+        <div class="permissionsChoose" style="left: 39%;">
+            <a href="#" onclick="queryCourseAll()">查看所有课程</a><br/>
+            <a href="#" onclick="queryStudentLastPeriodCourse()">查看最新期次课程</a><br/>
+            <a href="#" onclick="queryHomeWorkAll()">查看所有作业</a><br/>
+            <a href="#" onclick="queryStudentLastPeriodHomeWork()">查看最新期次作业</a><br/>
+        </div>
+    </div>
+
+    <!--新闻时政详情-->
+    <div class="managerUser" id="newsManager" onmouseover="showDiv('newsManager')" onmouseout="hideDiv('newsManager')" onclick="hideDiv('newsManager')">
+        <div class="permissionsChoose" style="left: 56%;">
+            <a>新闻时政操作1</a>
+            新闻时政
+        </div>
+    </div>
+    <!--管理员权限-->
+    <div class="managerUser" id="managerPermissions" onmouseover="showDiv('managerPermissions')" onmouseout="hideDiv('managerPermissions')" onclick="hideDiv('managerPermissions')">
+        <div class="permissionsChoose" style="left: 73%;">
+            <a>管理员权限1</a>
+            管理员权限
+        </div>
+    </div>
+    <!--显示操作获得的数据,学生权限-->
+    <div class="divOperation2" id="studentDisplay">
+        <div class="divOperation2Top">
+            <b>
+            <button onclick="deleteTableStudentManager(0)" class="studentDisplayButton">清空表格</button>
+            <button onclick="setFlagStudentCompare(1)" class="studentDisplayButton">禁用对比</button>
+            <button onclick="setFlagStudentCompare(2)" class="studentDisplayButton">启用对比</button>
+            </b>
+        </div>
+        <hr class="o2isHr">
+        <!--修改个人信息-->
+        <div id="changeMyselfInfo" class="myselfInfo">
+            <Span class="titleForTable">请您求改您的个人信息！</Span>
+            <form>
+                <table>
+                    <tr>
+                        <td>姓名：</td><td><input type="text" name="tutortname" id="tutorname"></td>
+                    </tr>
+                    <tr>
+                        <td>qtalk:</td><td id="tutorqtalk"></td>
+                    </tr>
+                    <tr>
+                        <td>性别：</td>
+                        <td>
+                            <select name="tutorsex" id="tutorsex">
+                                <option value="女">女</option>
+                                <option value="男">男</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>个性签名：</td>
+                        <td><input type="text" name="tutorcontent" id="tutorcontent"/></td>
+                    </tr>
+                    <tr>
+                        <td>手机号：</td>
+                        <td><input type="text" name="tutorphone" id="tutorphone"/></td>
+                    </tr>
+                    <tr>
+                        <td><input type="hidden" name="tutorperiod" id="tutorperiod"/></td>
+                        <td><input class="buttonforsure" type="button" value="确定" onclick="changeMyselfInfo()"/></td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <!--布置作业-->
+        <div id="uploadHomeworkDiv" class="uploadFileHomework">
+            <Span class="titleForTable">老师来布置你的作业吧！</Span>
+            <form id="sureHomeWork">
+                <table>
+                    <tr>
+                        <td>qtalk:</td><td><input readonly="readonly" type="text" name="qtalk" id="tutorqtalkHW"></td>
+                    </tr>
+                    <tr>
+                        <td>身份：</td><td>尊敬的老师</td>
+                    </tr>
+                    <tr>
+                        <td>作业：</td><td><input type="text" name="tutorHomework" id="homewroktext"/></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><input class="buttonforsure" type="button" value="确定" onclick="teacherSureHomework()"/></td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+</html>

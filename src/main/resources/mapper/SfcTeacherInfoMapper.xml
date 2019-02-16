@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="zijie.zeng.homework.study.dao.SfcTeacherInfoDao">
+
+    <!--修改操作-->
+    <update id="updateTeacherInfoBySfcTeacherInfoModel" parameterType="SfcStudentInfoModel">
+        update tutor_info
+        <set>
+            <if test="tutorName != null">
+                tutor_name = #{tutorName},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="tutorSex != null">
+                tutor_sex = #{tutorSex},
+            </if>
+            <if test="tutorContent != null">
+                tutor_content = #{tutorContent},
+            </if>
+            <if test="tutorPhone != null">
+                tutor_phone = #{tutorPhone},
+            </if>
+            <if test="tutorSubject != null">
+                tutor_subject = #{tutorSubject},
+            </if>
+            <if test="tutorHomework != null">
+                tutor_homework = #{tutorHomework},
+            </if>
+        </set>
+        where qtalk = #{qtalk} and period_id = #{periodId}
+    </update>
+
+
+    <!--查询所有期次所有学生-->
+    <select id="queryTeacherInfoAll" resultType="zijie.zeng.homework.study.model.SfcTeacherInfoModel">
+        SELECT
+            tutor_info_id as id,
+            qtalk as qtalk,
+            tutor_name as tutorName,
+            tutor_sex as tutorSex,
+            tutor_content as tutorContent,
+            tutor_phone as tutorPhone,
+            period_id as periodId,
+            tutor_subject as tutorSubject,
+            tutor_homework as tutorHomework
+        FROM
+            tutor_info
+    </select>
+
+    <!--查询最新期次所有学生-->
+    <select id="queryTeacherInfoByPeriodId" parameterType="int" resultType="zijie.zeng.homework.study.model.SfcTeacherInfoModel">
+        SELECT
+            tutor_info_id as id,
+            qtalk as qtalk,
+            tutor_name as tutorName,
+            tutor_sex as tutorSex,
+            tutor_content as tutorContent,
+            tutor_phone as tutorPhone,
+            period_id as periodId,
+            tutor_subject as tutorSubject,
+            tutor_homework as tutorHomework
+        FROM
+            tutor_info
+        where period_id = #{periodId}
+    </select>
+    <!--查询最新期次所有老师-->
+    <select id="queryTeacherInfoByQtalk" parameterType="String" resultType="zijie.zeng.homework.study.model.SfcTeacherInfoModel">
+        SELECT
+            tutor_info_id as id,
+            qtalk as qtalk,
+            tutor_name as tutorName,
+            tutor_sex as tutorSex,
+            tutor_content as tutorContent,
+            tutor_phone as tutorPhone,
+            period_id as periodId,
+            tutor_subject as tutorSubject,
+            tutor_homework as tutorHomework
+        FROM
+            tutor_info
+        where qtalk = #{qtalk}
+    </select>
+    <!--查询老师，根据期次和qtalk-->
+    <select id="queryTeacherInfoByQtalkAndPeriodId" resultType="zijie.zeng.homework.study.model.SfcTeacherInfoModel">
+        SELECT
+            tutor_info_id as id,
+            qtalk as qtalk,
+            tutor_name as tutorName,
+            password as password,
+            tutor_sex as tutorSex,
+            tutor_content as tutorContent,
+            tutor_phone as tutorPhone,
+            period_id as periodId,
+            tutor_subject as tutorSubject,
+            tutor_homework as tutorHomework
+        FROM
+            tutor_info
+        where qtalk = #{qtalk} and period_id = #{periodId}
+    </select>
+
+</mapper>

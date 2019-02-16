@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="zijie.zeng.homework.study.dao.SfcSubjectInfoDao">
+
+    <!--查询操作-->
+    <!--查询所有期次所有科目-->
+    <select id="querySubjectInfoAll" resultType="zijie.zeng.homework.study.model.SfcSubjectInfoModel">
+        SELECT
+            subject_info_id as id,
+            period_id as periodId,
+            subject_order as subjectOrder,
+            subject_name as subjectName
+        FROM
+            subject_info
+    </select>
+    <!--查询某一期次科目-->
+    <select id="querySubjectInfoByPeriodId" resultType="zijie.zeng.homework.study.model.SfcSubjectInfoModel">
+        SELECT
+            subject_info_id as id,
+            period_id as periodId,
+            subject_order as subjectOrder,
+            subject_name as subjectName
+        FROM
+            subject_info
+        where period_id = #{periodId}
+    </select>
+    <!--查询某一个科目-->
+    <select id="querySubjectInfoByPeriodIdAndSubjectOrder" resultType="zijie.zeng.homework.study.model.SfcSubjectInfoModel">
+        SELECT
+            subject_info_id as id,
+            period_id as periodId,
+            subject_order as subjectOrder,
+            subject_name as subjectName
+        FROM
+            subject_info
+        where period_id = #{periodId} and subject_order = #{subjectOrder}
+    </select>
+
+</mapper>

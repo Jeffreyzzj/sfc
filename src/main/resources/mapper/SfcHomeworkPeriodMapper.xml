@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="zijie.zeng.homework.study.dao.SfcHomeworkPeriodDao">
+
+    <!--查询操作-->
+    <!--查询当前期次，即数据库中期次值最大的期次-->
+    <select id="queryLastPeriodId" resultType="Integer">
+        SELECT MAX(period_id)
+        from sfc_period
+    </select>
+    <!--根据期次查询该期次是否在期次表中-->
+    <select id="queryPeriodByPeriodId" resultType="SfcHomeworkPeriodModel">
+        SELECT
+            sfc_period_id as id,
+            period_name as periodName,
+            period_id as periodId,
+            graduate_year as graduateYear,
+            educate_year as educateYear,
+            start_time as startTime,
+            end_time as endTime,
+            status as status
+        from sfc_period
+        where period_id = #{periodId}
+    </select>
+</mapper>
